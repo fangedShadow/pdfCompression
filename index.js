@@ -64,7 +64,21 @@ const upload = multer({
 
 app.disable('x-powered-by');
 app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+const allowedOrigins = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+app.use(cors({
+  origin: (requestOrigin, callback) => {
+    if (!requestOrigin || allowedOrigins.includes('*') || allowedOrigins.includes(requestOrigin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin is not allowed by CORS.'));
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'x-api-key'],
+  optionsSuccessStatus: 204,
+}));
 app.use(express.json({ limit: '1mb' }));
 
 function isAuthorized(request) {
@@ -125,6 +139,10 @@ function releaseCompressionSlot(request) {
     request.compressionSlot = null;
   }
 }
+
+app.get('/health', (request, response) => {
+  response.json({ success: true, status: 'ok' });
+});
 
 app.post('/compress', compressionLimiter, (request, response, next) => {
   if (!isAuthorized(request)) {
