@@ -11,6 +11,7 @@
   "dependencies": {
     "compress-pdf": "^0.6.3",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
     "multer": "^2.2.0"
