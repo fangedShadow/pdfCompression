@@ -5,7 +5,7 @@
   "routes": [{ "src": "/(.*)", "dest": "index.js" }],
   "functions": {
     "index.js": {
-      "includeFiles": ["node_modules/compress-pdf/bin/gs/**"]
+      "includeFiles": "node_modules/compress-pdf/bin/gs/**"
     }
   }
 }
