@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "vercel-build": "node vercel-build.js",
     "test": "node --check index.js"
   },
   "dependencies": {
