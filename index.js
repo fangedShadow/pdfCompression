@@ -19,27 +19,6 @@ const maxFileSize = Number(process.env.MAX_FILE_SIZE_BYTES) || 25 * 1024 * 1024;
 const compressionResolution = process.env.PDF_RESOLUTION || 'ebook';
 const imageQuality = Number(process.env.PDF_IMAGE_QUALITY) || 72;
 const compressedFilePrefix = process.env.COMPRESSED_FILE_PREFIX || 'compressed_';
-const bundledGhostscriptPath = path.join(
-  __dirname,
-  'node_modules/compress-pdf/bin/gs/ghostscript_linux/usr/local/bin/gs',
-);
-const bundledGhostscriptLibraryPath = path.join(
-  __dirname,
-  'node_modules/compress-pdf/bin/gs/ghostscript_linux/lib/x86_64-linux-gnu',
-);
-const bundledGhostscriptSystemLibraryPath = path.join(
-  __dirname,
-  'node_modules/compress-pdf/bin/gs/ghostscript_linux/usr/lib/x86_64-linux-gnu',
-);
-const ghostscriptPath = process.env.COMPRESS_PDF_BIN_PATH
-  || (fs.existsSync(bundledGhostscriptPath) ? bundledGhostscriptPath : undefined);
-if (fs.existsSync(bundledGhostscriptLibraryPath)) {
-  process.env.LD_LIBRARY_PATH = [
-    bundledGhostscriptLibraryPath,
-    bundledGhostscriptSystemLibraryPath,
-    process.env.LD_LIBRARY_PATH,
-  ].filter(Boolean).join(path.delimiter);
-}
 const compressionConcurrency = Number(process.env.COMPRESSION_CONCURRENCY)
   || Math.max(1, Math.min(os.cpus().length, 4));
 const maxQueueSize = Number(process.env.MAX_QUEUE_SIZE) || 1000;
@@ -190,7 +169,7 @@ app.post('/compress', compressionLimiter, (request, response, next) => {
       resolution: compressionResolution,
       imageQuality,
       compatibilityLevel: 1.4,
-      gsModule: ghostscriptPath,
+      gsModule: process.env.COMPRESS_PDF_BIN_PATH,
     });
     const compressedFilename = getCompressedFilename(request.file.originalname);
 
