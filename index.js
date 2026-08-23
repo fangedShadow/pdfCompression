@@ -140,6 +140,10 @@ function releaseCompressionSlot(request) {
   }
 }
 
+app.get('/', (request, response) => {
+  response.json({ success: true, service: 'pdf-compression', health: '/health' });
+});
+
 app.get('/health', (request, response) => {
   response.json({ success: true, status: 'ok' });
 });

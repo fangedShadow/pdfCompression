@@ -12,6 +12,10 @@ if (installResult.status !== 0) {
 
 const ghostscriptRoot = path.join(packageRoot, 'bin/gs/ghostscript_linux');
 
+if (!fs.existsSync(ghostscriptRoot)) {
+  process.exit(0);
+}
+
 function materializeLibraryLinks(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
