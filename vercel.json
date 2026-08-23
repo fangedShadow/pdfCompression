@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
   "routes": [{ "src": "/(.*)", "dest": "/api/index.js" }],
   "functions": {
     "api/index.js": {
