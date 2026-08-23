@@ -1,0 +1,24 @@
+{
+  "name": "pdfconverter",
+  "version": "1.0.0",
+  "description": "Compressor for pdfs",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --check index.js"
+  },
+  "dependencies": {
+    "compress-pdf": "^0.6.3",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "multer": "^2.2.0"
+  },
+  "allowScripts": {
+    "compress-pdf@0.6.3": true
+  },
+  "devDependencies": {
+    "@vercel/node": "^7.0.0"
+  }
+}
