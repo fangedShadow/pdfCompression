@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const os = require('os');
 const path = require('path');
 const multer = require('multer');
+const rateLimit = require('express-rate-limit');
 const { compress } = require('compress-pdf');
 const dotenv = require('dotenv');
 
@@ -20,6 +21,18 @@ const compressedFilePrefix = process.env.COMPRESSED_FILE_PREFIX || 'compressed_'
 const compressionConcurrency = Number(process.env.COMPRESSION_CONCURRENCY)
   || Math.max(1, Math.min(os.cpus().length, 4));
 const maxQueueSize = Number(process.env.MAX_QUEUE_SIZE) || 1000;
+const compressionRateLimit = Number(process.env.COMPRESSION_RATE_LIMIT) || 60;
+const configuredApiKey = process.env.COMPRESS_API_KEY;
+const compressionLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: compressionRateLimit,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: { code: 'RATE_LIMITED', message: 'Too many compression requests. Try again later.' },
+  },
+});
 let activeCompressionJobs = 0;
 const compressionQueue = [];
 const upload = multer({
@@ -33,11 +46,15 @@ app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json({ limit: '1mb' }));
 
 function isAuthorized(request) {
-  const configuredKey = process.env.COMPRESS_API_KEY;
-  if (!configuredKey) return true;
+  if (!configuredApiKey) return process.env.NODE_ENV !== 'production';
 
   const suppliedKey = request.get('x-api-key');
-  return suppliedKey === configuredKey;
+  if (!suppliedKey || suppliedKey.length !== configuredApiKey.length) return false;
+
+  return require('crypto').timingSafeEqual(
+    Buffer.from(suppliedKey),
+    Buffer.from(configuredApiKey),
+  );
 }
 
 function sendError(response, status, code, message) {
@@ -49,7 +66,8 @@ function sendError(response, status, code, message) {
 
 function getCompressedFilename(originalFilename) {
   const safeFilename = path.basename(originalFilename).replace(/["\\\r\n]/g, '_');
-  return `${compressedFilePrefix}${safeFilename}`;
+  const safePrefix = compressedFilePrefix.replace(/["\\\r\n]/g, '_');
+  return `${safePrefix}${safeFilename}`;
 }
 
 function acquireCompressionSlot() {
@@ -86,7 +104,7 @@ function releaseCompressionSlot(request) {
   }
 }
 
-app.post('/compress', (request, response, next) => {
+app.post('/compress', compressionLimiter, (request, response, next) => {
   if (!isAuthorized(request)) {
     return sendError(response, 401, 'UNAUTHORIZED', 'A valid x-api-key header is required.');
   }
