@@ -13,6 +13,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', Number(process.env.TRUST_PROXY) || 1);
 const port = Number(process.env.PORT) || 3000;
 const maxFileSize = Number(process.env.MAX_FILE_SIZE_BYTES) || 25 * 1024 * 1024;
 const compressionResolution = process.env.PDF_RESOLUTION || 'ebook';
